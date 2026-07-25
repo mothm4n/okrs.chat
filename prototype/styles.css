@@ -1,6 +1,6 @@
 /* Hallmark · pre-emit critique: P5 H5 E4 S5 R5 V4 */
 /* Hallmark · genre: editorial · tone: brutalist · anchor hue: warm vermilion · macrostructure: Manifesto · theme: Brutal · enrichment: none · nav: N9 Edge-aligned minimal · footer: Ft4 Dense typographic · contrast: pass (40–41) · slop: pass (42–45) · honest: pass (46) · chrome: pass (47) · tokens: pass (48) · responsive: pass (49) · mobile: pass (34, 49–57) */
-@import url("../tokens.css");
+@import url("../assets/css/tokens.css");
 
 html {
   overflow-x: clip;
