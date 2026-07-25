@@ -112,8 +112,8 @@ PYTHON
 assert_required_metadata() {
   local front_matter="$1"
 
-  printf '%s\n' "$front_matter" | rg --pcre2 --quiet '^title:\s*"(?=[^"]*\S)[^"]+"\s*$'
-  printf '%s\n' "$front_matter" | rg --pcre2 --quiet '^description:\s*"(?=[^"]*\S)[^"]+"\s*$'
+  printf '%s\n' "$front_matter" | rg --pcre2 --quiet '^title:\s*"(?=[^"]*[^"\s])[^"]+"\s*$'
+  printf '%s\n' "$front_matter" | rg --pcre2 --quiet '^description:\s*"(?=[^"]*[^"\s])[^"]+"\s*$'
   printf '%s\n' "$front_matter" | rg --pcre2 --quiet '^date:\s*"?\d{4}-\d{2}-\d{2}"?\s*$'
 }
 
