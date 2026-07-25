@@ -25,6 +25,8 @@ jobs:
         with:
           hugo-version: "0.156.0"
           extended: true
+      - name: Set up Ripgrep
+        run: sudo apt-get update && sudo apt-get install --yes ripgrep
       - name: Verify public site
         run: ./scripts/verify-site.sh
 
