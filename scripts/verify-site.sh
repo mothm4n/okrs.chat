@@ -18,12 +18,20 @@ assert_not_contains() {
   ! rg --fixed-strings --quiet "$forbidden_text" "$file_path"
 }
 
+assert_png() {
+  local file_path="$1"
+  local png_signature
+
+  png_signature="$(od -An -t x1 -N8 "$file_path" | tr -d '[:space:]')"
+  test "$png_signature" = "89504e470d0a1a0a"
+}
+
 front_matter_value() {
-  local content_file="$1"
+  local front_matter="$1"
   local field_name="$2"
   local value
 
-  value="$(rg --pcre2 --only-matching "^${field_name}:\\s*\\K.*" "$content_file")"
+  value="$(printf '%s\n' "$front_matter" | rg --pcre2 --only-matching "^${field_name}:\\s*\\K.*")"
   value="${value#"${value%%[![:space:]]*}"}"
   value="${value%"${value##*[![:space:]]}"}"
   value="${value#\"}"
@@ -38,10 +46,26 @@ front_matter_value() {
 
 assert_journal_metadata() {
   local content_file="$1"
+  local front_matter
 
-  front_matter_value "$content_file" "title"
-  front_matter_value "$content_file" "description"
-  front_matter_value "$content_file" "date"
+  front_matter="$(awk '
+    NR == 1 {
+      if ($0 != "---") exit 1
+      next
+    }
+    $0 == "---" {
+      found_end = 1
+      exit
+    }
+    { print }
+    END {
+      if (!found_end) exit 1
+    }
+  ' "$content_file")"
+
+  front_matter_value "$front_matter" "title"
+  front_matter_value "$front_matter" "description"
+  front_matter_value "$front_matter" "date"
 }
 
 test -f "$site_output_dir/index.html"
@@ -50,6 +74,7 @@ test -f "$site_output_dir/blog/hello-world/index.html"
 test -f "$site_output_dir/robots.txt"
 test -f "$site_output_dir/sitemap.xml"
 test -f "$site_output_dir/images/okrs-social.png"
+assert_png "$site_output_dir/images/okrs-social.png"
 test ! -f "$site_output_dir/CNAME"
 rg --fixed-strings --quiet -- "--color-paper:" "$site_output_dir/css"
 
