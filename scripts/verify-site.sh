@@ -34,7 +34,9 @@ if image[:8] != b"\x89PNG\r\n\x1a\n":
 
 offset = 8
 idat = bytearray()
-has_header = False
+header = None
+has_palette = False
+has_idat = False
 has_end = False
 
 while offset < len(image):
@@ -54,10 +56,30 @@ while offset < len(image):
         raise ValueError("invalid PNG checksum")
 
     if chunk_type == b"IHDR":
-        if has_header or length != 13:
+        if header is not None or offset != 8 or length != 13:
             raise ValueError("invalid PNG header")
-        has_header = True
+        width, height, bit_depth, color_type, compression, filtering, interlace = struct.unpack(
+            ">IIBBBBB", chunk_data
+        )
+        if (
+            not width
+            or not height
+            or bit_depth not in (1, 2, 4, 8, 16)
+            or color_type not in (0, 2, 3, 4, 6)
+            or compression != 0
+            or filtering != 0
+            or interlace != 0
+        ):
+            raise ValueError("unsupported PNG header")
+        header = width, height, bit_depth, color_type
+    elif chunk_type == b"PLTE":
+        if header is None or has_idat or has_palette or not 3 <= length <= 768 or length % 3:
+            raise ValueError("invalid PNG palette")
+        has_palette = True
     elif chunk_type == b"IDAT":
+        if header is None or (header[3] == 3 and not has_palette):
+            raise ValueError("invalid PNG image data")
+        has_idat = True
         idat.extend(chunk_data)
     elif chunk_type == b"IEND":
         if length != 0 or has_end or chunk_end + 4 != len(image):
@@ -67,10 +89,15 @@ while offset < len(image):
 
     offset = chunk_end + 4
 
-if not has_header or not idat or not has_end:
+if header is None or not has_idat or not idat or not has_end:
     raise ValueError("incomplete PNG")
 
-zlib.decompress(idat)
+width, height, bit_depth, color_type = header
+channels = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}[color_type]
+bytes_per_row = (width * channels * bit_depth + 7) // 8
+pixel_data = zlib.decompress(idat)
+if len(pixel_data) != height * (bytes_per_row + 1):
+    raise ValueError("invalid PNG pixel data")
 PYTHON
 }
 
@@ -83,9 +110,9 @@ front_matter_value() {
   value="${value#"${value%%[![:space:]]*}"}"
   value="${value%"${value##*[![:space:]]}"}"
 
-  case "$value" in
-    "" | "~" | "null" | "NULL" | "Null" | \#*) return 1 ;;
-  esac
+  if [[ -z "$value" || "$value" == \#* || "$value" == [\!\&\*]* || "$value" =~ ^(null|NULL|Null|~)([[:space:]]*(\#.*)?)?$ ]]; then
+    return 1
+  fi
 
   value="${value#\"}"
   value="${value%\"}"
