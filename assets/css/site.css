@@ -1,7 +1,5 @@
 /* Hallmark · pre-emit critique: P5 H5 E4 S5 R5 V4 */
 /* Hallmark · genre: editorial · tone: brutalist · anchor hue: warm vermilion · macrostructure: Manifesto · theme: Brutal · enrichment: none · nav: edge-aligned minimal · footer: dense typographic */
-@import "tokens.css";
-
 html { overflow-x: clip; background: var(--color-paper); }
 body { min-inline-size: 0; margin: 0; overflow-x: clip; background: var(--color-paper); color: var(--color-ink); font-family: var(--font-body); font-size: var(--text-base); line-height: 1.6; padding-inline: max(env(safe-area-inset-left), 0px) max(env(safe-area-inset-right), 0px); }
 * { box-sizing: border-box; }
@@ -67,7 +65,8 @@ a { color: inherit; }
   .questions { display: grid; gap: var(--space-3xl); grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .questions h2, .questions ul { margin: 0; }
 }
+@media (max-width: 48rem) { .site-nav { align-items: flex-start; flex-wrap: wrap; gap: var(--space-xs) var(--space-sm); } .site-nav nav { margin-inline-start: auto; } .nav-cta { font-size: var(--text-xs); padding-inline: var(--space-sm); } .hero-copy { max-inline-size: 100%; } }
 @media (max-width: 40rem) { .post-list a { align-items: flex-start; flex-direction: column; gap: var(--space-md); } .post-list .post-meta { max-inline-size: none; text-align: start; } }
-@media (max-width: 30rem) { .nav-link { display: none; } }
+@media (max-width: 30rem) { .site-nav nav { flex-basis: 100%; margin-inline-start: 0; order: 3; } .nav-link { padding-inline: 0; } }
 @media (pointer: coarse) { .nav-cta, .primary-cta { min-block-size: 3rem; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto; transition-duration: 0ms; } }

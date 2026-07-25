@@ -28,10 +28,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
-    {{ with resources.Get "css/site.css" }}
-      {{ $style := . | minify | fingerprint }}
-      <link rel="stylesheet" href="{{ $style.RelPermalink }}" integrity="{{ $style.Data.Integrity }}">
-    {{ end }}
+    {{ $tokens := resources.Get "css/tokens.css" }}
+    {{ $siteStyles := resources.Get "css/site.css" }}
+    {{ $style := slice $tokens $siteStyles | resources.Concat "css/site.css" | minify | fingerprint }}
+    <link rel="stylesheet" href="{{ $style.RelPermalink }}" integrity="{{ $style.Data.Integrity }}">
   </head>
   <body>
     <header class="site-nav">

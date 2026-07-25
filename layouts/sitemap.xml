@@ -1,0 +1,10 @@
+{{- printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  {{- $publicPages := where .Site.Pages "Kind" "in" (slice "home" "section" "page") }}
+  {{- range $publicPages }}
+    <url>
+      <loc>{{ .Permalink }}</loc>
+      {{- with .Lastmod }}<lastmod>{{ .Format "2006-01-02T15:04:05-07:00" }}</lastmod>{{ end }}
+    </url>
+  {{- end }}
+</urlset>
