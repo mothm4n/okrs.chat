@@ -18,12 +18,30 @@ assert_not_contains() {
   ! rg --fixed-strings --quiet "$forbidden_text" "$file_path"
 }
 
+front_matter_value() {
+  local content_file="$1"
+  local field_name="$2"
+  local value
+
+  value="$(rg --pcre2 --only-matching "^${field_name}:\\s*\\K.*" "$content_file")"
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  value="${value#\"}"
+  value="${value%\"}"
+  value="${value#\'}"
+  value="${value%\'}"
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+
+  test -n "$value"
+}
+
 assert_journal_metadata() {
   local content_file="$1"
 
-  rg --quiet '^title: .+' "$content_file"
-  rg --quiet '^description: .+' "$content_file"
-  rg --quiet '^date: .+' "$content_file"
+  front_matter_value "$content_file" "title"
+  front_matter_value "$content_file" "description"
+  front_matter_value "$content_file" "date"
 }
 
 test -f "$site_output_dir/index.html"
@@ -85,6 +103,7 @@ while IFS= read -r article_page; do
   assert_contains "$article_page" "<meta property=\"og:type\" content=\"article\">"
   assert_contains "$article_page" "BlogPosting"
   assert_contains "$article_page" "Marc Gelpi, OKR expert"
+  assert_contains "$site_output_dir/blog/index.html" "href=$public_path/"
   assert_contains "$site_output_dir/sitemap.xml" "$canonical_url"
 done < <(find "$site_output_dir/blog" -type f -name 'index.html' ! -path "$site_output_dir/blog/index.html" | sort)
 
