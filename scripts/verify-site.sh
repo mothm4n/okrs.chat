@@ -29,6 +29,7 @@ rg --fixed-strings --quiet -- "--color-paper:" "$site_output_dir/css"
 
 assert_contains "$site_output_dir/index.html" "Better OKRs start with"
 assert_contains "$site_output_dir/index.html" "Coming soon."
+assert_contains "$site_output_dir/index.html" "Marc Gelpi, OKR expert"
 assert_contains "$site_output_dir/index.html" "<title>OKRs.chat</title>"
 assert_contains "$site_output_dir/index.html" "<meta name=description content=\"A Socratic space"
 assert_contains "$site_output_dir/index.html" "<link rel=canonical href=https://okrs.chat/>"
