@@ -1,0 +1,16 @@
+baseURL = "https://okrs.chat/"
+languageCode = "en"
+title = "OKRs.chat"
+enableRobotsTXT = true
+disableKinds = ["taxonomy", "term"]
+
+[params]
+  description = "A Socratic space for OKR Champions, coaches, and team leaders who want to challenge their thinking before committing to a plan."
+  authorName = "Marc Gelpi"
+  authorRole = "OKR expert"
+  authorLinkedIn = "https://www.linkedin.com/in/gelpi/"
+  socialImage = "/images/okrs-social.png"
+
+[outputs]
+  home = ["HTML", "RSS", "Sitemap"]
+  section = ["HTML", "RSS"]

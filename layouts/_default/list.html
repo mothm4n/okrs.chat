@@ -1,0 +1,17 @@
+{{ define "main" }}
+  <section class="journal" aria-labelledby="journal-title">
+    <p class="section-kicker">Public library of judgement</p>
+    <h1 id="journal-title">{{ .Title }}</h1>
+    <p class="journal-intro">{{ .Description }}</p>
+    <ol class="post-list">
+      {{ range .Pages.ByDate.Reverse }}
+        <li>
+          <a href="{{ .RelPermalink }}">
+            <span class="post-title">{{ .Title }}</span>
+            <span class="post-meta">{{ .Date.Format "2 January 2006" }} · By Marc Gelpi, OKR expert</span>
+          </a>
+        </li>
+      {{ end }}
+    </ol>
+  </section>
+{{ end }}

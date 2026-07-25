@@ -1,0 +1,25 @@
+{{ define "main" }}
+  <section class="hero" aria-labelledby="hero-title">
+    <p class="hero-kicker">For teams that have to set OKRs</p>
+    <h1 id="hero-title" class="hero-display">Better OKRs start with <span>better questions.</span></h1>
+    <div class="hero-copy">
+      <p>OKRs.chat is a Socratic space for OKR Champions, coaches, and team leaders who want to challenge their thinking before committing to a plan.</p>
+      <p>It will help teams clarify the outcome they are pursuing, test assumptions, and identify early signals that tell them whether their bet is working.</p>
+    </div>
+  </section>
+
+  <section class="coming-soon" aria-labelledby="coming-title">
+    <p class="coming-label">OKRs.chat is in progress</p>
+    <h2 id="coming-title">Coming soon.</h2>
+    <a class="primary-cta" href="{{ .Site.Params.authorLinkedIn }}" target="_blank" rel="noreferrer">Follow Marc Gelpi <span aria-hidden="true">↗</span></a>
+  </section>
+
+  <section class="questions" aria-labelledby="questions-title">
+    <h2 id="questions-title">Before the plan, the questions.</h2>
+    <ul>
+      <li>What outcome are we actually pursuing?</li>
+      <li>Which assumptions must be true?</li>
+      <li>What early signal would change our mind?</li>
+    </ul>
+  </section>
+{{ end }}
