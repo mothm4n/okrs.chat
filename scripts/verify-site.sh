@@ -61,11 +61,17 @@ while offset < len(image):
         width, height, bit_depth, color_type, compression, filtering, interlace = struct.unpack(
             ">IIBBBBB", chunk_data
         )
+        allowed_bit_depths = {
+            0: (1, 2, 4, 8, 16),
+            2: (8, 16),
+            3: (1, 2, 4, 8),
+            4: (8, 16),
+            6: (8, 16),
+        }
         if (
             not width
             or not height
-            or bit_depth not in (1, 2, 4, 8, 16)
-            or color_type not in (0, 2, 3, 4, 6)
+            or bit_depth not in allowed_bit_depths.get(color_type, ())
             or compression != 0
             or filtering != 0
             or interlace != 0
@@ -98,30 +104,17 @@ bytes_per_row = (width * channels * bit_depth + 7) // 8
 pixel_data = zlib.decompress(idat)
 if len(pixel_data) != height * (bytes_per_row + 1):
     raise ValueError("invalid PNG pixel data")
+if any(pixel_data[row * (bytes_per_row + 1)] > 4 for row in range(height)):
+    raise ValueError("invalid PNG filter")
 PYTHON
 }
 
-front_matter_value() {
+assert_required_metadata() {
   local front_matter="$1"
-  local field_name="$2"
-  local value
 
-  value="$(printf '%s\n' "$front_matter" | rg --pcre2 --only-matching "^${field_name}:\\s*\\K.*")"
-  value="${value#"${value%%[![:space:]]*}"}"
-  value="${value%"${value##*[![:space:]]}"}"
-
-  if [[ -z "$value" || "$value" == \#* || "$value" == [\!\&\*]* || "$value" =~ ^(null|NULL|Null|~)([[:space:]]*(\#.*)?)?$ ]]; then
-    return 1
-  fi
-
-  value="${value#\"}"
-  value="${value%\"}"
-  value="${value#\'}"
-  value="${value%\'}"
-  value="${value#"${value%%[![:space:]]*}"}"
-  value="${value%"${value##*[![:space:]]}"}"
-
-  test -n "$value"
+  printf '%s\n' "$front_matter" | rg --pcre2 --quiet '^title:\s*"(?=[^"]*\S)[^"]+"\s*$'
+  printf '%s\n' "$front_matter" | rg --pcre2 --quiet '^description:\s*"(?=[^"]*\S)[^"]+"\s*$'
+  printf '%s\n' "$front_matter" | rg --pcre2 --quiet '^date:\s*"?\d{4}-\d{2}-\d{2}"?\s*$'
 }
 
 assert_journal_metadata() {
@@ -143,9 +136,7 @@ assert_journal_metadata() {
     }
   ' "$content_file")"
 
-  front_matter_value "$front_matter" "title"
-  front_matter_value "$front_matter" "description"
-  front_matter_value "$front_matter" "date"
+  assert_required_metadata "$front_matter"
 }
 
 test -f "$site_output_dir/index.html"
