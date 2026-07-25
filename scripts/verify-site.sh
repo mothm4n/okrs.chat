@@ -20,10 +20,58 @@ assert_not_contains() {
 
 assert_png() {
   local file_path="$1"
-  local png_signature
 
-  png_signature="$(od -An -t x1 -N8 "$file_path" | tr -d '[:space:]')"
-  test "$png_signature" = "89504e470d0a1a0a"
+  python3 - "$file_path" <<'PYTHON'
+import struct
+import sys
+import zlib
+
+with open(sys.argv[1], "rb") as image_file:
+    image = image_file.read()
+
+if image[:8] != b"\x89PNG\r\n\x1a\n":
+    raise ValueError("missing PNG signature")
+
+offset = 8
+idat = bytearray()
+has_header = False
+has_end = False
+
+while offset < len(image):
+    if offset + 12 > len(image):
+        raise ValueError("truncated PNG chunk")
+
+    length = struct.unpack(">I", image[offset : offset + 4])[0]
+    chunk_type = image[offset + 4 : offset + 8]
+    chunk_start = offset + 8
+    chunk_end = chunk_start + length
+    if chunk_end + 4 > len(image):
+        raise ValueError("truncated PNG data")
+
+    chunk_data = image[chunk_start:chunk_end]
+    chunk_crc = struct.unpack(">I", image[chunk_end : chunk_end + 4])[0]
+    if zlib.crc32(chunk_type + chunk_data) & 0xFFFFFFFF != chunk_crc:
+        raise ValueError("invalid PNG checksum")
+
+    if chunk_type == b"IHDR":
+        if has_header or length != 13:
+            raise ValueError("invalid PNG header")
+        has_header = True
+    elif chunk_type == b"IDAT":
+        idat.extend(chunk_data)
+    elif chunk_type == b"IEND":
+        if length != 0 or has_end or chunk_end + 4 != len(image):
+            raise ValueError("invalid PNG end")
+        has_end = True
+        break
+
+    offset = chunk_end + 4
+
+if not has_header or not idat or not has_end:
+    raise ValueError("incomplete PNG")
+
+zlib.decompress(idat)
+PYTHON
 }
 
 front_matter_value() {
@@ -34,6 +82,11 @@ front_matter_value() {
   value="$(printf '%s\n' "$front_matter" | rg --pcre2 --only-matching "^${field_name}:\\s*\\K.*")"
   value="${value#"${value%%[![:space:]]*}"}"
   value="${value%"${value##*[![:space:]]}"}"
+
+  case "$value" in
+    "" | "~" | "null" | "NULL" | "Null" | \#*) return 1 ;;
+  esac
+
   value="${value#\"}"
   value="${value%\"}"
   value="${value#\'}"
