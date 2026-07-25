@@ -1,5 +1,6 @@
 baseURL = "https://okrs.chat/"
 languageCode = "en"
+timeZone = "Europe/Madrid"
 title = "OKRs.chat"
 enableRobotsTXT = true
 disableKinds = ["taxonomy", "term"]
