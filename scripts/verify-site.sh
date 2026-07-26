@@ -2,16 +2,18 @@
 set -euo pipefail
 
 site_output_dir="$(mktemp -d)"
+fixture_output_dir="$(mktemp -d)"
 
 cleanup() {
   local exit_status=$?
-  rm -rf -- "$site_output_dir"
+  rm -rf -- "$site_output_dir" "$fixture_output_dir"
   exit "$exit_status"
 }
 
 trap cleanup EXIT
 
 hugo --minify --baseURL "https://okrs.chat/" --destination "$site_output_dir"
+hugo --minify --baseURL "https://okrs.chat/" --contentDir testdata/content --destination "$fixture_output_dir"
 
 assert_contains() {
   local file_path="$1"
@@ -155,6 +157,22 @@ test -f "$site_output_dir/images/okrs-social.png"
 assert_png "$site_output_dir/images/okrs-social.png"
 test ! -f "$site_output_dir/CNAME"
 rg --fixed-strings --quiet -- "--color-paper:" "$site_output_dir/css"
+assert_contains "assets/css/site.css" ".post-content :is(h1, h2)"
+assert_contains "assets/css/site.css" ".post-content blockquote"
+assert_contains "assets/css/site.css" ".post-content table"
+assert_contains "assets/css/site.css" ".post-content pre"
+assert_contains "assets/css/site.css" ".post-content details"
+assert_contains "assets/css/site.css" ".post-content summary:active"
+assert_contains "assets/css/site.css" "@media (prefers-reduced-motion: reduce)"
+assert_contains "ARTICLE_AUTHORING.md" 'only `h1`'
+test -f "$fixture_output_dir/blog/article-elements/index.html"
+assert_contains "$fixture_output_dir/blog/article-elements/index.html" "<h2 id=second-level-heading>Second-level heading</h2>"
+assert_contains "$fixture_output_dir/blog/article-elements/index.html" "<table>"
+assert_contains "$fixture_output_dir/blog/article-elements/index.html" "<blockquote>"
+assert_contains "$fixture_output_dir/blog/article-elements/index.html" "<details>"
+assert_contains "$fixture_output_dir/blog/article-elements/index.html" "<iframe title=\"Embedded reference\" src=about:blank></iframe>"
+assert_contains "$fixture_output_dir/blog/article-elements/index.html" "class=chroma"
+assert_not_contains "$fixture_output_dir/blog/article-elements/index.html" "background-color:#272822"
 
 while IFS= read -r content_file; do
   assert_journal_metadata "$content_file"
@@ -209,6 +227,8 @@ while IFS= read -r article_page; do
   assert_contains "$article_page" "Marc Gelpi, OKR expert"
   assert_contains "$site_output_dir/blog/index.html" "href=$public_path/"
   assert_contains "$site_output_dir/sitemap.xml" "$canonical_url"
+  article_heading_count="$(rg --only-matching '<h1' "$article_page" | wc -l | tr -d '[:space:]')"
+  test "$article_heading_count" -eq 1
 done < <(find "$site_output_dir/blog" -type f -name 'index.html' ! -path "$site_output_dir/blog/index.html" | sort)
 
 expected_sitemap_count="$(find "$site_output_dir" -type f -name 'index.html' | wc -l | tr -d '[:space:]')"
