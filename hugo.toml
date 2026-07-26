@@ -15,3 +15,9 @@ disableKinds = ["taxonomy", "term"]
 [outputs]
   home = ["HTML", "RSS", "Sitemap"]
   section = ["HTML", "RSS"]
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+[markup.highlight]
+  noClasses = false
