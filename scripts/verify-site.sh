@@ -18,13 +18,13 @@ hugo --minify --baseURL "https://okrs.chat/" --contentDir testdata/content --des
 assert_contains() {
   local file_path="$1"
   local expected_text="$2"
-  rg --fixed-strings --quiet "$expected_text" "$file_path"
+  rg --fixed-strings --quiet -- "$expected_text" "$file_path"
 }
 
 assert_not_contains() {
   local file_path="$1"
   local forbidden_text="$2"
-  ! rg --fixed-strings --quiet "$forbidden_text" "$file_path"
+  ! rg --fixed-strings --quiet -- "$forbidden_text" "$file_path"
 }
 
 assert_png() {
@@ -158,6 +158,12 @@ assert_png "$site_output_dir/images/okrs-social.png"
 test ! -f "$site_output_dir/CNAME"
 rg --fixed-strings --quiet -- "--color-paper:" "$site_output_dir/css"
 assert_contains "assets/css/site.css" ".post-content :is(h1, h2)"
+assert_contains "assets/css/tokens.css" "--text-heading-1:"
+assert_contains "assets/css/site.css" ".post-content h1 {"
+assert_contains "assets/css/site.css" ".post-content h2 {"
+assert_contains "assets/css/site.css" "font-size: var(--text-heading-1);"
+assert_contains "assets/css/site.css" "font-size: var(--text-heading-2);"
+assert_contains "assets/css/site.css" "font-size: var(--text-heading-3);"
 assert_contains "assets/css/site.css" ".post-content blockquote"
 assert_contains "assets/css/site.css" ".post-content table"
 assert_contains "assets/css/site.css" ".post-content pre"
